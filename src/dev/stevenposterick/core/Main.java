@@ -1,44 +1,26 @@
 package dev.stevenposterick.core;
 
-import dev.stevenposterick.utils.listeners.ClientListener;
+import dev.stevenposterick.utils.server.Server;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+public class Main {
 
-public class Main implements ClientListener {
+    private final Server server;
 
     public static void main(String[] args) {
         try {
-            new Main();
+            new Main(args);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public Main() throws Exception {
-        String commandLine = System.getProperty("sun.java.command");
-        Map<String, String> commandMap = loadCommandMap(commandLine);
-
-        if (!commandMap.containsKey("host") || commandMap.containsKey("port")){
-            throw new Exception("Failed to find host or port argument");
+    public Main(String[] args) throws Exception {
+        if (args.length != 1){
+            throw new Exception("Incorrect amount of arguments, only port needed");
         }
-
         // Fetch the host and port.
-        String host = commandMap.get("host");
-        String port = commandMap.get("port");
-    }
-
-    private Map<String, String> loadCommandMap(String commandLine) {
-        Map<String, String> commandMap = new HashMap<>();
-        String[] arguments = commandLine.split(" ");
-
-        Arrays.stream(arguments)
-                .filter(s-> s.contains("="))
-                .forEach(s-> {
-                    String[] argument = s.split("=");
-                    commandMap.put(argument[0], argument[1]);
-                });
-        return commandMap;
+        String port = args[0];
+        this.server = new Server(Integer.parseInt(port));
+        this.server.start();
     }
 }
