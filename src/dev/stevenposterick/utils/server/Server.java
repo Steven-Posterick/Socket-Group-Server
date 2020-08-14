@@ -6,8 +6,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class Server extends Thread implements ClientListener {
@@ -16,6 +15,12 @@ public class Server extends Thread implements ClientListener {
     private volatile boolean running = true;
     private ServerSocket serverSocket;
     private List<ServerConnection> serverConnections = new CopyOnWriteArrayList<>();
+
+    /*
+    Use ThreadPoolExecutor to stop connection after 24 hours and use a max of 60 threads.
+    */
+    private ThreadPoolExecutor executor =
+            new ThreadPoolExecutor(5, 60, 24, TimeUnit.HOURS, new LinkedBlockingQueue<>());
 
     public Server(int port) {
         this.port = port;
@@ -43,7 +48,7 @@ public class Server extends Thread implements ClientListener {
                 ServerConnection serverConnection =
                         new ServerConnection(connectionNames, socket, this);
 
-                serverConnection.start();
+                executor.submit(serverConnection);
                 serverConnections.add(serverConnection);
             } catch (IOException e) {
                 e.printStackTrace();
